@@ -1,0 +1,6 @@
+zone,zoneType,masters,nameservers
+128.28.172.in-addr.arpa,MASTER,,"172.28.128.3,172.28.128.4,172.28.128.5"
+dev.vagrant.local,MASTER,,"172.28.128.3,172.28.128.4,172.28.128.5"
+prod.vagrant.local,MASTER,,"172.28.128.3,172.28.128.4,172.28.128.5"
+test.vagrant.local,MASTER,,"172.28.128.3,172.28.128.4,172.28.128.5"
+vagrant.local,MASTER,,"172.28.128.3,172.28.128.4,172.28.128.5"

@@ -1,0 +1,6 @@
+zone,zoneType,masters,nameservers
+128.28.172.in-addr.arpa,SLAVE,"172.28.128.3",
+dev.vagrant.local,SLAVE,"172.28.128.3",
+prod.vagrant.local,SLAVE,"172.28.128.3",
+test.vagrant.local,SLAVE,"172.28.128.3",
+vagrant.local,SLAVE,"172.28.128.3",

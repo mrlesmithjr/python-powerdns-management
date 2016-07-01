@@ -1,0 +1,5 @@
+name,zone,record_type
+node100,test.vagrant.local,A
+node101,test.vagrant.local,A
+node202,dev.vagrant.local,A
+node203,dev.vagrant.local,CNAME

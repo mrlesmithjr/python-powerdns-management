@@ -1,0 +1,13 @@
+name,zone,record_type,content,disabled,ttl,set_ptr,priority
+development,test.vagrant.local,A,172.28.128.3,FALSE,3600,TRUE,0
+mail,vagrant.local,CNAME,smtp.vagrant.local,FALSE,3600,TRUE,0
+node0,test.vagrant.local,A,172.28.128.4,FALSE,3600,TRUE,0
+node1,test.vagrant.local,A,172.28.128.5,FALSE,3600,TRUE,0
+node100,test.vagrant.local,A,172.28.128.100,FALSE,3600,TRUE,0
+node101,test.vagrant.local,A,172.28.128.101,FALSE,3600,TRUE,0
+node102,test.vagrant.local,A,172.28.128.102,FALSE,3600,TRUE,0
+node2,dev.vagrant.local,A,172.28.128.201,FALSE,3600,TRUE,0
+node201,dev.vagrant.local,A,172.28.128.202,FALSE,3600,TRUE,0
+node202,dev.vagrant.local,A,172.28.128.203,FALSE,3600,TRUE,0
+node203,dev.vagrant.local,CNAME,node201.dev.vagrant.local,FALSE,3600,TRUE,0
+smtp,vagrant.local,A,172.28.128.20,FALSE,3600,TRUE,0
