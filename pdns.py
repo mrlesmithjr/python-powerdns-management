@@ -191,7 +191,7 @@ class PDNSControl(object):
                 csv_f = csv.reader(f)
                 next(csv_f, None) #skip headers
                 for row in csv_f:
-                    uri = ("http://%s:%s/servers/localhost/zones/%s"
+                    uri = ("http://%s:%s/api/v1/servers/localhost/zones/%s"
                            %(self.args.apihost, self.args.apiport, row[1]))
                     if row[4].lower() == "false":
                         disabled = False
@@ -269,7 +269,7 @@ class PDNSControl(object):
                     "masters": masters,
                     "nameservers": []
                 }
-            zone_check_uri = ("http://%s:%s/servers/localhost/zones/%s"
+            zone_check_uri = ("http://%s:%s/api/v1/servers/localhost/zones/%s"
                               %(self.args.apihost, self.args.apiport, self.args.zone))
             zone_check = requests.get(zone_check_uri, headers=self.headers)
             if zone_check.status_code == 200:
@@ -285,7 +285,7 @@ class PDNSControl(object):
                 for row in csv_f:
                     masters = []
                     nameservers = []
-                    zone_check_uri = ("http://%s:%s/servers/localhost/zones/%s"
+                    zone_check_uri = ("http://%s:%s/api/v1/servers/localhost/zones/%s"
                                       %(self.args.apihost, self.args.apiport, row[0]))
                     zone_check = requests.get(zone_check_uri, headers=self.headers)
                     if zone_check.status_code == 200:
@@ -375,7 +375,7 @@ class PDNSControl(object):
                 csv_f = csv.reader(f)
                 next(csv_f, None) #skip headers
                 for row in csv_f:
-                    uri = ("http://%s:%s/servers/localhost/zones/%s"
+                    uri = ("http://%s:%s/api/v1/servers/localhost/zones/%s"
                            %(self.args.apihost, self.args.apiport, row[1]))
                     payload = {
                         "rrsets": [
@@ -486,19 +486,19 @@ class PDNSControl(object):
         self.headers = {'X-API-Key': self.args.apikey}
         if (self.args.action == "add_zones" or (self.args.action == "query_zones" and
                                                 self.args.zone is None)):
-            self.uri = ("http://%s:%s/servers/localhost/zones"
+            self.uri = ("http://%s:%s/api/v1/servers/localhost/zones"
                         %(self.args.apihost, self.args.apiport))
         elif ((self.args.action == "add_records" and self.args.readcsv is None)
               or (self.args.action == "delete_records" and self.args.readcsv is None)
               or self.args.action == "delete_zones" or
               (self.args.action == "query_zones" and self.args.zone is not None)):
-            self.uri = ("http://%s:%s/servers/localhost/zones/%s"
+            self.uri = ("http://%s:%s/api/v1/servers/localhost/zones/%s"
                         %(self.args.apihost, self.args.apiport, self.args.zone))
         elif self.args.action == "query_config":
-            self.uri = ("http://%s:%s/servers/localhost/config"
+            self.uri = ("http://%s:%s/api/v1/servers/localhost/config"
                         %(self.args.apihost, self.args.apiport))
         elif self.args.action == "query_stats":
-            self.uri = ("http://%s:%s/servers/localhost/statistics"
+            self.uri = ("http://%s:%s/api/v1/servers/localhost/statistics"
                         %(self.args.apihost, self.args.apiport))
 
 if __name__ == '__main__':
