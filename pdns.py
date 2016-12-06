@@ -140,6 +140,13 @@ Query zones
 
 ./pdns.py query_zones --apihost 172.28.128.3
 
+Api version
+-----------
+
+./pdns.py query_config --apihost 172.28.128.3 --apiversion old
+Default is PDNS v4.0.x version v1 api /api/v1
+For PDNS v3.x use --apiversion old
+
 """
 
 class PDNSControl(object):
@@ -191,8 +198,8 @@ class PDNSControl(object):
                 csv_f = csv.reader(f)
                 next(csv_f, None) #skip headers
                 for row in csv_f:
-                    uri = ("http://%s:%s/servers/localhost/zones/%s"
-                           %(self.args.apihost, self.args.apiport, row[1]))
+                    uri = ("http://%s:%s%s/servers/localhost/zones/%s"
+                           %(self.args.apihost, self.args.apiport, self.args.apiversion, row[1]))
                     if row[4].lower() == "false":
                         disabled = False
                     elif row[4].lower() == "true":
@@ -269,8 +276,8 @@ class PDNSControl(object):
                     "masters": masters,
                     "nameservers": []
                 }
-            zone_check_uri = ("http://%s:%s/servers/localhost/zones/%s"
-                              %(self.args.apihost, self.args.apiport, self.args.zone))
+            zone_check_uri = ("http://%s:%s%s/servers/localhost/zones/%s"
+                              %(self.args.apihost, self.args.apiport, self.args.apiversion, self.args.zone))
             zone_check = requests.get(zone_check_uri, headers=self.headers)
             if zone_check.status_code == 200:
                 print "DNS Zone '%s' Already Exists..." % self.args.zone
@@ -285,8 +292,8 @@ class PDNSControl(object):
                 for row in csv_f:
                     masters = []
                     nameservers = []
-                    zone_check_uri = ("http://%s:%s/servers/localhost/zones/%s"
-                                      %(self.args.apihost, self.args.apiport, row[0]))
+                    zone_check_uri = ("http://%s:%s%s/servers/localhost/zones/%s"
+                                      %(self.args.apihost, self.args.apiport, self.args.apiversion, row[0]))
                     zone_check = requests.get(zone_check_uri, headers=self.headers)
                     if zone_check.status_code == 200:
                         print "DNS Zone '%s' Already Exists...Skipping" % row[0]
@@ -375,8 +382,8 @@ class PDNSControl(object):
                 csv_f = csv.reader(f)
                 next(csv_f, None) #skip headers
                 for row in csv_f:
-                    uri = ("http://%s:%s/servers/localhost/zones/%s"
-                           %(self.args.apihost, self.args.apiport, row[1]))
+                    uri = ("http://%s:%s%s/servers/localhost/zones/%s"
+                           %(self.args.apihost, self.args.apiport, self.args.apiversion, row[1]))
                     payload = {
                         "rrsets": [
                             {
@@ -452,6 +459,7 @@ class PDNSControl(object):
                                      'delete_zones', 'query_config', 'query_stats', 'query_zones'])
         parser.add_argument('--apikey', help='PDNS API Key', default='changeme')
         parser.add_argument('--apihost', help='PDNS API Host', default='127.0.0.1')
+        parser.add_argument('--apiversion', help='PDNS API version', choices=['old', '/api/v1'], default='/api/v1')
         parser.add_argument('--apiport', help='PDNS API Port', default='8081')
         parser.add_argument('--content', help='DNS Record content')
         parser.add_argument('--disabled', help='Define if Record is disabled',
@@ -470,6 +478,8 @@ class PDNSControl(object):
         parser.add_argument('--zoneType', help='DNS Zone Type',
                             choices=['MASTER', 'NATIVE', 'SLAVE'])
         self.args = parser.parse_args()
+        if self.args.apiversion == "old":
+            self.args.apiversion = ""
         if self.args.action == "add_zones" and (self.args.zoneType == "MASTER" and
                                                 self.args.nameservers is None):
             parser.error("--nameservers is required to create MASTER zone")
@@ -486,20 +496,20 @@ class PDNSControl(object):
         self.headers = {'X-API-Key': self.args.apikey}
         if (self.args.action == "add_zones" or (self.args.action == "query_zones" and
                                                 self.args.zone is None)):
-            self.uri = ("http://%s:%s/servers/localhost/zones"
-                        %(self.args.apihost, self.args.apiport))
+            self.uri = ("http://%s:%s%s/servers/localhost/zones"
+                        %(self.args.apihost, self.args.apiport, self.args.apiversion))
         elif ((self.args.action == "add_records" and self.args.readcsv is None)
               or (self.args.action == "delete_records" and self.args.readcsv is None)
               or self.args.action == "delete_zones" or
               (self.args.action == "query_zones" and self.args.zone is not None)):
-            self.uri = ("http://%s:%s/servers/localhost/zones/%s"
-                        %(self.args.apihost, self.args.apiport, self.args.zone))
+            self.uri = ("http://%s:%s%s/servers/localhost/zones/%s"
+                        %(self.args.apihost, self.args.apiport, self.args.apiversion, self.args.zone))
         elif self.args.action == "query_config":
-            self.uri = ("http://%s:%s/servers/localhost/config"
-                        %(self.args.apihost, self.args.apiport))
+            self.uri = ("http://%s:%s%s/servers/localhost/config"
+                        %(self.args.apihost, self.args.apiport, self.args.apiversion))
         elif self.args.action == "query_stats":
-            self.uri = ("http://%s:%s/servers/localhost/statistics"
-                        %(self.args.apihost, self.args.apiport))
+            self.uri = ("http://%s:%s%s/servers/localhost/statistics"
+                        %(self.args.apihost, self.args.apiport, self.args.apiversion))
 
 if __name__ == '__main__':
     PDNSControl()
