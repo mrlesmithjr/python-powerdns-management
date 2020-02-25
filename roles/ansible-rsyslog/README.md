@@ -1,71 +1,42 @@
-Role Name
-=========
+# ansible-rsyslog
 
-Installs rsyslog (Configurable and remote syslog server ready)
+Ansible role to install/configure rsyslog
 
-Requirements
-------------
+## Build Status
 
-None
+### GitHub Actions
 
-Role Variables
---------------
+![Molecule Test](https://github.com/mrlesmithjr/ansible-rsyslog/workflows/Molecule%20Test/badge.svg)
 
-````
----
-# defaults file for ansible-rsyslog
-configure_rsyslog: false  #defines if rsyslog should be reconfigured
-pri_domain_name: example.org  #defines primary domain name...define here or globally in group_vars/all
-rsyslog_allow_tcp: false  #defines if rsyslog should be configured to listen on tcp/514
-rsyslog_allow_udp: false  #defines if rsyslog should be configured to listen on udp/514
-syslog_servers: []  #defines remote syslog servers...define here or globally in group_vars/all
-#  - name: 'graylog.{{ pri_domain_name }}'
-#    proto: udp
-#    port: 514
-#  - name: 'logstash.{{ pri_domain_name }}'
-#    proto: tcp
-#    port: 514
-#  - name: localhost  #good for redirecting back itself..ex. logstash running on tcp/udp 10514...to get around logstash running on ports < 1024
-#    proto: tcp
-#    port: 10514
-````
+### Travis CI
 
-Dependencies
-------------
+[![Build Status](https://travis-ci.org/mrlesmithjr/ansible-rsyslog.svg?branch=master)](https://travis-ci.org/mrlesmithjr/ansible-rsyslog)
 
-None
+## Requirements
 
-Example Playbook
-----------------
+For any required Ansible roles, review:
+[requirements.yml](requirements.yml)
 
-#### GitHub
-````
-- hosts: all
-  become: true
-  vars:
-  roles:
-    - ansible-rsyslog
-  tasks:
-````
-#### Galaxy
-````
-- hosts: all
-  become: true
-  vars:
-  roles:
-    - mrlesmithjr.syslog
-  tasks:
-````
+## Role Variables
 
-License
--------
+[defaults/main.yml](defaults/main.yml)
 
-BSD
+## Dependencies
 
-Author Information
-------------------
+## Example Playbook
+
+[playbook.yml](playbook.yml)
+
+## License
+
+MIT
+
+## Author Information
 
 Larry Smith Jr.
-- @mrlesmithjr
-- http://everythingshouldbevirtual.com
-- mrlesmithjr [at] gmail.com
+
+- [@mrlesmithjr](https://twitter.com/mrlesmithjr)
+- [mrlesmithjr@gmail.com](mailto:mrlesmithjr@gmail.com)
+- [http://everythingshouldbevirtual.com](http://everythingshouldbevirtual.com)
+
+> NOTE: Repo has been created/updated using [https://github.com/mrlesmithjr/cookiecutter-ansible-role](https://github.com/mrlesmithjr/cookiecutter-ansible-role) as a template.

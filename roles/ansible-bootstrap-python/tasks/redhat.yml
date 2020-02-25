@@ -1,0 +1,30 @@
+---
+# Need to add EPEL Repo for python2 pip
+- name: redhat | Adding EPEL Repo
+  yum:
+    name: epel-release
+    state: present
+  become: true
+  register: result
+  until: result is successful
+  when:
+    - ansible_distribution != "Fedora"
+    - ansible_python_version is version('3', '<')
+
+- name: redhat | Installing Python Packages
+  dnf:
+    name: "{{ bootstrap_python_packages }}"
+    state: present
+  become: true
+  register: result
+  until: result is successful
+  when: ansible_distribution == "Fedora"
+
+- name: redhat | Installing Python Packages
+  yum:
+    name: "{{ bootstrap_python_packages }}"
+    state: present
+  become: true
+  register: result
+  until: result is successful
+  when: ansible_distribution != "Fedora"

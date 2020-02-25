@@ -1,15 +1,33 @@
 ---
 # tasks file for ansible-mysql
-- include: debian.yml
+- include_tasks: set_facts.yml
+
+- include_tasks: alpine.yml
+  when: ansible_os_family == "Alpine"
+
+- include_tasks: debian.yml
   when: ansible_os_family == "Debian"
 
-- include: redhat.yml
+- include_tasks: redhat.yml
   when: ansible_os_family == "RedHat"
 
-- include: configure_root_access.yml
+- include_tasks: config.yml
+  when: mysql_config|bool
 
-- include: mysql_check.yml
-  when: config_mysqlchk
+- include_tasks: configure_root_access.yml
 
-- include: setup_replication.yml
-  when: config_mysql_replication
+- include_tasks: dbs.yml
+  when:
+    - mysql_dbs is defined
+    - mysql_dbs != []
+
+- include_tasks: db_users.yml
+  when:
+    - mysql_db_users is defined
+    - mysql_db_users != []
+
+- include_tasks: mysql_check.yml
+  when: mysql_config_mysqlchk|bool
+
+- include_tasks: setup_replication.yml
+  when: mysql_config_replication|bool

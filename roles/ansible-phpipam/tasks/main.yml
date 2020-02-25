@@ -3,7 +3,9 @@
 - include: set_facts.yml
 
 - include: upgrade.yml
-  when: phpipam_upgrade
+  when: >
+        phpipam_upgrade or
+        phpipam_install_from_git
 
 - include: debian.yml
   when: ansible_os_family == "Debian"
@@ -30,5 +32,5 @@
   tags:
     - phpipam_db_backups
   when: >
-        enable_phpipam_db_backups is defined and
-        enable_phpipam_db_backups
+        phpipam_enable_db_backups is defined and
+        phpipam_enable_db_backups

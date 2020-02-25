@@ -1,7 +1,5 @@
 ---
-- hosts: all
-  sudo: true
-  vars:
+- name: Example Playbook
+  hosts: all
   roles:
     - role: ansible-apache2
-  tasks:

@@ -1,9 +1,7 @@
 ---
-- hosts: all
-  sudo: true
-  vars:
-    - mysql_allow_remote_connections: true
-    - mysql_docker_install: true
-  roles:
-    - role: ansible-mysql
+- name: Example Playbook
+  hosts: all
   tasks:
+    - name: "Include ansible-mysql"
+      include_role:
+        name: "ansible-mysql"

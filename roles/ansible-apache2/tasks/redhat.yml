@@ -1,36 +1,27 @@
 ---
-#- name: redhat | installing pre-reqs
-#  yum:
-#    name: "{{ item }}"
-#    state: present
-#  with_items:
-#    - dnf
-#    - python-dnf
-#  when: >
-#        (ansible_distribution != "Fedora" and
-#        ansible_distribution_version | version_compare('7', '>='))
-
 - name: redhat | installing apache
   dnf:
-    name: "httpd"
+    name: httpd
     state: present
-#  when: >
-#        (ansible_distribution == "Fedora" or
-#        ansible_distribution_version | version_compare('7', '>='))
+  become: true
+  register: result
+  until: result is successful
   when: >
         ansible_distribution == "Fedora"
 
 - name: redhat | installing apache
   yum:
-    name: "httpd"
+    name: httpd
     state: present
-#  when: >
-#        ansible_distribution_version | version_compare('7', '<')
+  become: true
+  register: result
+  until: result is successful
   when: >
         ansible_distribution != "Fedora"
 
 - name: redhat | enabling apache on boot and starting
   service:
-    name: "httpd"
+    name: httpd
     state: started
-    enabled: yes
+    enabled: true
+  become: true

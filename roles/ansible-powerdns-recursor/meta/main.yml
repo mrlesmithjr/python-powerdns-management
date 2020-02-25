@@ -1,0 +1,26 @@
+---
+galaxy_info:
+  author: Larry Smith Jr.
+  description: An Ansible role that installs/configures PowerDNS Recursor
+  license: license (GPLv2, CC-BY, etc)
+
+  min_ansible_version: 1.2
+
+  platforms:
+    - name: EL
+      versions:
+        - 7
+    - name: Ubuntu
+      versions:
+        - bionic
+        - trusty
+        - xenial
+    - name: Debian
+      versions:
+        - jessie
+
+  galaxy_tags:
+    - system
+    - networking
+
+dependencies: []

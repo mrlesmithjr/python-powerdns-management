@@ -1,53 +1,60 @@
-Role Name
-=========
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-Installs ntp
+**Table of Contents** _generated with [DocToc](https://github.com/thlorenz/doctoc)_
 
-Requirements
-------------
+- [ansible-ntp](#ansible-ntp)
+  - [Build Status](#build-status)
+  - [Requirements](#requirements)
+  - [Role Variables](#role-variables)
+  - [Dependencies](#dependencies)
+  - [Example Playbook](#example-playbook)
+  - [License](#license)
+  - [Author Information](#author-information)
 
-Define ntp_master for your group of servers which should be used for your internal ntp servers for clients to connect to.
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+# ansible-ntp
+
+An [Ansible](https://www.ansible.com) role to install/configure NTP
+
+## Build Status
+
+[![Build Status](https://travis-ci.org/mrlesmithjr/ansible-ntp.svg?branch=master)](https://travis-ci.org/mrlesmithjr/ansible-ntp)
+
+## Requirements
+
+Define ntp_master for your group of servers which should be used for your
+internal ntp servers for clients to connect to.
 ex. group_vars/ntp_masters
 
-Role Variables
---------------
+## Role Variables
 
-````
-ntp_master: false  #defines if host is ntp_master....set ntp_master to true on specific group_vars/group
-ntp_master_servers:  #define your ntp_master_servers....set in group_vars/all/configs
-  - 0.ubuntu.pool.ntp.org
-  - 1.ubuntu.pool.ntp.org
-  - 2.ubuntu.pool.ntp.org
-  - 3.ubuntu.pool.ntp.org
-#ntp_servers:  #defines internal ntp servers for clients to poll
-#  - 'ntp1.{{ pri_domain_name }}'
-#  - 'ntp2.{{ pri_domain_name }}'
-pri_domain_name: example.org  #defines your primary domain name...define here or globally in group_vars/all
-````
+[default/main.yml](defaults/main.yml)
 
-Dependencies
-------------
+## Dependencies
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+None
 
-Example Playbook
-----------------
+## Example Playbook
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+```yaml
+- hosts: all
+  become: true
+  vars:
+  roles:
+    - role: ansible-ntp
+  tasks:
+```
 
-    - hosts: servers
-      roles:
-         - { role: mrlesmithjr.ntp }
+## License
 
-License
--------
+MIT
 
-BSD
-
-Author Information
-------------------
+## Author Information
 
 Larry Smith Jr.
-- @mrlesmithjr
-- http://everythingshouldbevirtual.com
-- mrlesmithjr [at] gmail.com
+
+- [@mrlesmithjr](https://www.twitter.com/mrlesmithjr)
+- [EverythingShouldBeVirtual](http://everythingshouldbevirtual.com)
+- [mrlesmithjr@gmail.com](mailto:mrlesmithjr@gmail.com)

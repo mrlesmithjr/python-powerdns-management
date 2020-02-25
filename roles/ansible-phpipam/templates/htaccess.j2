@@ -1,0 +1,19 @@
+<IfModule mod_rewrite.c>
+
+# Enable rewrite engine
+RewriteEngine on
+
+# change rewrite base if not in root
+# RewriteBase /
+RewriteBase {{ phpipam_base }}
+
+# Passthroughs
+RewriteRule ^(css|js|app|test)/.*$ - [L,QSA]
+
+# Rewrites
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [L]
+
+</IfModule>

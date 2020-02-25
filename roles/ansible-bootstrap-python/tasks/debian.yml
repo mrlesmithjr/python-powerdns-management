@@ -1,0 +1,8 @@
+---
+- name: debian | Installing Python Packages
+  apt:
+    name: "{{ bootstrap_python_packages }}"
+    state: present
+  become: true
+  register: result
+  until: result is successful

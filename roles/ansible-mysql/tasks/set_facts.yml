@@ -1,0 +1,72 @@
+---
+# We need to also install Python3 packages to ensure idempotency as mysql-server
+# installs Python3 packages as part of the install
+- name: set_facts | Setting Debian/Ubuntu Pre-Reqs
+  set_fact:
+    mysql_pre_req_packages:
+      - automysqlbackup
+      - python-mysqldb
+      - python3-mysqldb
+      - rsync
+      - software-properties-common
+      - virtualenv
+  when:
+    - ansible_os_family == "Debian"
+    - ansible_python_version is version('3', '<')
+
+- name: set_facts | Setting Debian/Ubuntu Pre-Reqs
+  set_fact:
+    mysql_pre_req_packages:
+      - automysqlbackup
+      - python3-mysqldb
+      - rsync
+      - software-properties-common
+      - virtualenv
+  when:
+    - ansible_os_family == "Debian"
+    - ansible_python_version is version('3', '>=')
+
+- name: set_facts | Setting RedHat Facts
+  set_fact:
+    mysql_pre_req_packages:
+      - libselinux-python
+      - mysql-devel
+      - python-devel
+      - python-pip
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_python_version is version('3', '<')
+
+- name: set_facts | Setting RedHat Facts
+  set_fact:
+    mysql_pre_req_packages:
+      - mysql-devel
+      - python3-devel
+      - python3-libselinux
+      - python3-pip
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_python_version is version('3', '>=')
+
+- name: set_facts | Setting Debian Facts
+  set_fact:
+    mysql_login_unix_socket: /var/run/mysqld/mysqld.sock
+    mysql_package: mysql-server
+  when:
+    - ansible_distribution == "Debian"
+    - ansible_distribution_version is version('9', '<')
+
+- name: set_facts | Setting Debian Facts
+  set_fact:
+    mysql_login_unix_socket: /var/run/mysqld/mysqld.sock
+    mysql_package: mariadb-server
+  when:
+    - ansible_distribution == "Debian"
+    - ansible_distribution_version is version('9', '>=')
+
+- name: set_facts | Setting Ubuntu Facts
+  set_fact:
+    mysql_login_unix_socket: /var/run/mysqld/mysqld.sock
+    mysql_package: mysql-server
+  when:
+    - ansible_distribution == "Ubuntu"

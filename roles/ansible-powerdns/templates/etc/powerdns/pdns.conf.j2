@@ -29,7 +29,9 @@ allow-dnsupdate-from={{ allow_ddns_updates_from }}
 # also-notify	When notifying a domain, also notify these nameservers
 #
 # also-notify=
-
+{% if pdns_also_notify.configure %}
+also-notify={{ pdns_also_notify.notify_ips|join (', ') }}
+{% endif %}
 #################################
 # any-to-tcp	Answer ANY queries with tc=1, shunting to TCP
 #
@@ -267,6 +269,7 @@ local-address=127.0.0.1,{{ ansible_default_ipv4.address }}
 # local-port	The port on which we listen
 #
 # local-port=53
+local-port={{ pdns_auth_port }}
 
 #################################
 # log-dns-details	If PDNS should log DNS non-erroneous details

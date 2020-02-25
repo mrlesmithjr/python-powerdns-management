@@ -1,31 +1,42 @@
 ---
-- name: configure_root_access | ensuring MySQL service is running (Non Docker install)
+- name: configure_root_access | ensuring MySQL service is running
   service:
-    name: "mysql"
-    state: "started"
-    enabled: yes
-  when: >
-        mariadb_server_installed is not defined and
-        (mysql_docker_install is defined and
-        not mysql_docker_install) or
-        mysql_docker_install is not defined
+    name: mysql
+    state: started
+    enabled: true
+  become: true
+  when: ansible_os_family == "Debian"
 
-- name: configure_root_access | ensuring MySQL service is running (Non Docker install)
+- name: configure_root_access | ensuring MySQL service is running
   service:
-    name: "mariadb"
-    state: "started"
-    enabled: yes
-  when: >
-        mariadb_server_installed is defined and
-        (mysql_docker_install is defined and
-        not mysql_docker_install) or
-        mysql_docker_install is not defined
+    name: mysqld
+    state: started
+    enabled: true
+  become: true
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_distribution != "Fedora"
+    - ansible_distribution_version is version('7', '<')
 
-- name: configure_root_access | ensuring MySQL service is running (Docker install)
-  shell: "/usr/bin/mysqld_safe > /dev/null 2>&1 &"
-  when: >
-        mysql_docker_install is defined and
-        mysql_docker_install
+- name: configure_root_access | ensuring MySQL service is running
+  service:
+    name: mariadb
+    state: started
+    enabled: true
+  become: true
+  when:
+    - ansible_os_family == "Alpine"
+
+- name: configure_root_access | ensuring MySQL service is running
+  service:
+    name: mariadb
+    state: started
+    enabled: true
+  become: true
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_distribution != "Fedora"
+    - ansible_distribution_version is version('7', '>=')
 
 - name: configure_root_access | waiting for MySQL service
   wait_for:
@@ -34,25 +45,30 @@
 
 - name: configure_root | configuring root my.cnf
   template:
-    src: "root/my.cnf.j2"
-    dest: "/root/.my.cnf"
-    owner: "root"
-    group: "root"
+    src: root/my.cnf.j2
+    dest: /root/.my.cnf
+    owner: root
+    group: root
     mode: 0600
+  become: true
   when: ansible_os_family == "Debian"
 
 - name: configure_root_access | updating root passwords
   mysql_user:
-    name: "root"
+    name: root
     host: "{{ item }}"
     password: "{{ mysql_root_password }}"
-  with_items: '{{ mysql_allow_root_access_from_hosts }}'
+    login_unix_socket: "{{ mysql_login_unix_socket|default(omit) }}"
+  become: true
+  loop: "{{ mysql_allow_root_access_from_hosts }}"
+  when: not ansible_check_mode
 
 - name: configure_root | configuring root my.cnf
   template:
-    src: "root/my.cnf.j2"
-    dest: "/root/.my.cnf"
-    owner: "root"
-    group: "root"
+    src: root/my.cnf.j2
+    dest: /root/.my.cnf
+    owner: root
+    group: root
     mode: 0600
+  become: true
   when: ansible_os_family != "Debian"
