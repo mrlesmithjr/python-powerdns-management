@@ -80,11 +80,12 @@ python pdns.py add_zones --apihost 192.168.202.201 --zone dev.vagrant.local --zo
 
 ## Create Master Zones using a CSV file
 
-Create a master_zones.csv similar to below:
+Create a [examples/master_zones.csv](examples/master_zones.csv) similar to below:
 
-```bash
+```csv
 zone,zoneType,masters,nameservers
 128.28.172.in-addr.arpa,MASTER,,"192.168.202.200,192.168.202.201,192.168.202.202"
+202.168.192.in-addr.arpa,MASTER,,"192.168.202.200,192.168.202.201,192.168.202.202"
 dev.vagrant.local,MASTER,,"192.168.202.200,192.168.202.201,192.168.202.202"
 prod.vagrant.local,MASTER,,"192.168.202.200,192.168.202.201,192.168.202.202"
 test.vagrant.local,MASTER,,"192.168.202.200,192.168.202.201,192.168.202.202"
@@ -96,7 +97,7 @@ The first row is the header...
 Now read the csv file using CLI argument:
 
 ```bash
-python pdns.py add_zones --apihost 192.168.202.200 --readcsv master_zones.csv
+python pdns.py add_zones --apihost 192.168.202.200 --readcsv examples/master_zones.csv
 ```
 
 ## Create records with info below
@@ -119,13 +120,15 @@ python pdns.py add_records --zone dev.vagrant.local --name development --content
 
 ## Create records using a csv file
 
-Create a add_records.csv file similar to below:
+Create a [examples/add_records.csv](examples/add_records.csv) file similar
+to below:
 
-```bash
+```csv
 name,zone,record_type,content,disabled,ttl,set_ptr,priority
-development,test.vagrant.local,A,192.168.202.200,FALSE,3600,TRUE,0
-node0,test.vagrant.local,A,192.168.202.201,FALSE,3600,TRUE,0
-node1,test.vagrant.local,A,192.168.202.202,FALSE,3600,TRUE,0
+development,test.vagrant.local,A,192.168.202.3,FALSE,3600,TRUE,0
+mail,vagrant.local,CNAME,smtp.vagrant.local,FALSE,3600,TRUE,0
+node0,test.vagrant.local,A,192.168.202.4,FALSE,3600,TRUE,0
+node1,test.vagrant.local,A,192.168.202.5,FALSE,3600,TRUE,0
 node100,test.vagrant.local,A,192.168.202.100,FALSE,3600,TRUE,0
 node101,test.vagrant.local,A,192.168.202.101,FALSE,3600,TRUE,0
 node102,test.vagrant.local,A,192.168.202.102,FALSE,3600,TRUE,0
@@ -134,7 +137,6 @@ node201,dev.vagrant.local,A,192.168.202.202,FALSE,3600,TRUE,0
 node202,dev.vagrant.local,A,192.168.202.203,FALSE,3600,TRUE,0
 node203,dev.vagrant.local,CNAME,node201.dev.vagrant.local,FALSE,3600,TRUE,0
 smtp,vagrant.local,A,192.168.202.20,FALSE,3600,TRUE,0
-mail,vagrant.local,CNAME,smtp.vagrant.local,FALSE,3600,TRUE,0
 ```
 
 The first row is the header...
@@ -142,7 +144,7 @@ The first row is the header...
 Now read the csv file using CLI argument:
 
 ```bash
-python pdns.py add_records --apihost 192.168.202.200 --readcsv add_records.csv
+python pdns.py add_records --apihost 192.168.202.200 --readcsv examples/add_records.csv
 ```
 
 ## Delete records with info below
@@ -157,9 +159,10 @@ python pdns.py delete_records --apihost 192.168.202.200 --name smtp --zone vagra
 
 ## Delete records reading from a csv file
 
-Create a delete_records.csv similar to below:
+Create a [examples/delete_records.csv](examples/delete_records.csv) similar
+to below:
 
-```bash
+```csv
 name,zone,record_type
 node100,test.vagrant.local,A
 node101,test.vagrant.local,A
@@ -172,7 +175,7 @@ The first row is the header...
 Now read the csv file using CLI argument:
 
 ```bash
-python pdns.py delete_records --apihost 192.168.202.200 --readcsv delete_records.csv
+python pdns.py delete_records --apihost 192.168.202.200 --readcsv examples/delete_records.csv
 ```
 
 ## Query PDNS config
