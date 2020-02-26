@@ -420,51 +420,98 @@ class PDNSControl(object):
         Delete DNS records of different types
         """
         if self.args.readcsv is None:
-            payload = {
-                "rrsets": [
-                    {
-                        "name": self.args.name + '.' + self.args.zone,
+
+            # Define FQDN
+            dns_record = f'{self.args.name}.{self.args.zone}'
+
+            # Ensure record is canonical
+            if not dns_record.endswith('.'):
+                dns_record = f'{dns_record}.'
+
+            payload = {"rrsets": [{"name": dns_record,
                         "type": self.args.recordType,
-                        "changetype": "DELETE",
-                    }
-                ]
-            }
+                                   "changetype": "DELETE"}]}
+
             zone_check = requests.get(self.uri, headers=self.headers)
+
             if zone_check.status_code == 200:
                 dummy_r = requests.patch(
                     self.uri, data=json.dumps(payload), headers=self.headers)
-                print("DNS Record '%s' Successfully Deleted"
-                      % (self.args.name + '.' + self.args.zone))
+
+                if dummy_r.status_code not in [200, 204]:
+                    return_msg = {
+                        'status_code': dummy_r.status_code,
+                        'error': dummy_r.json().get('error'),
+                        'payload': payload}
+                    print(json.dumps(return_msg))
+
             else:
-                print("DNS Zone '%s' Does Not Exist..." % self.args.zone)
+                    return_msg = {
+                        'status_code': dummy_r.status_code,
+                        'msg': f'{dns_record} deleted'
+                    }
+                    print(json.dumps(return_msg))
+
+            else:
+                return_msg = {
+                    'status_code': zone_check.status_code,
+                    'error': zone_check.json().get('error'),
+                    'payload': payload
+                }
+
+                print(json.dumps(return_msg))
+
         elif self.args.readcsv is not None:
             try:
                 f = open(self.args.readcsv)
                 csv_f = csv.reader(f)
                 next(csv_f, None)  # skip headers
                 for row in csv_f:
+
                     uri = ("http://%s:%s%s/servers/localhost/zones/%s"
                            % (self.args.apihost, self.args.apiport,
                               self.args.apiversion, row[1]))
-                    payload = {
-                        "rrsets": [
-                            {
-                                "name": row[0] + '.' + row[1],
-                                "type": row[2],
-                                "changetype": "DELETE",
-                            }
-                        ]
-                    }
+
+                    # Define FQDN
+                    dns_record = f'{row[0]}.{row[1]}'
+
+                    # Ensure record is canonical
+                    if not dns_record.endswith('.'):
+                        dns_record = f'{dns_record}.'
+
+                    payload = {"rrsets": [{"name": dns_record, "type": row[2],
+                                           "changetype": "DELETE"}]}
+
                     zone_check = requests.get(uri, headers=self.headers)
+
                     if zone_check.status_code == 200:
                         dummy_r = (requests.patch(uri,
                                                   data=json.dumps(payload),
                                                   headers=self.headers))
-                        print("DNS Record '%s' Successfully Deleted"
-                              % (row[0] + '.' + row[1]))
+
+                        if dummy_r.status_code not in [200, 204]:
+                            return_msg = {
+                                'status_code': dummy_r.status_code,
+                                'error': dummy_r.json().get('error'),
+                                'payload': payload}
+                            print(json.dumps(return_msg))
+
+                        else:
+                            return_msg = {
+                                'status_code': dummy_r.status_code,
+                                'msg': f'{dns_record} deleted'
+                            }
+                            print(json.dumps(return_msg))
+
                     else:
-                        print("DNS Zone '%s' Does Not Exist...Skipping" %
-                              row[1])
+                        return_msg = {
+                            'status_code': zone_check.status_code,
+                            'error': zone_check.json().get('error'),
+                            'payload': payload
+                        }
+
+                        print(json.dumps(return_msg))
+
             finally:
                 f.close()
 
