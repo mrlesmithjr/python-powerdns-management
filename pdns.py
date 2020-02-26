@@ -184,11 +184,11 @@ class PDNSControl(object):
                 "rrsets": [{"name": dns_record, "type": self.args.recordType,
                             "ttl": int(self.args.ttl), "changetype": "REPLACE",
                             "records": [{"content": self.args.content,
-                                "disabled": self.args.disabled,
+                                         "disabled": self.args.disabled,
                                          "name": dns_record,
                                          "ttl": int(self.args.ttl),
-                                "set-ptr": self.args.setPTR,
-                                "type": self.args.recordType,
+                                         "set-ptr": self.args.setPTR,
+                                         "type": self.args.recordType,
                                          "priority": self.args.priority}]}]}
 
             # Check if zone exists
@@ -205,7 +205,7 @@ class PDNSControl(object):
                         'payload': payload}
                     print(json.dumps(return_msg))
 
-            else:
+                else:
                     return_msg = {
                         'status_code': dummy_r.status_code,
                         'msg': f'{dns_record} added/updated'
@@ -249,13 +249,13 @@ class PDNSControl(object):
 
                     payload = {"rrsets": [{"name": dns_record, "type": row[2],
                                            "ttl": int(row[5]),
-                                "changetype": "REPLACE",
+                                           "changetype": "REPLACE",
                                            "records": [{"content": row[3],
-                                        "disabled": disabled,
+                                                        "disabled": disabled,
                                                         "name": dns_record,
                                                         "ttl": int(row[5]),
-                                        "set-ptr": set_ptr,
-                                        "type": row[2],
+                                                        "set-ptr": set_ptr,
+                                                        "type": row[2],
                                                         "priority": row[7]}]}]}
 
                     # Check if zone exists
@@ -429,7 +429,7 @@ class PDNSControl(object):
                 dns_record = f'{dns_record}.'
 
             payload = {"rrsets": [{"name": dns_record,
-                        "type": self.args.recordType,
+                                   "type": self.args.recordType,
                                    "changetype": "DELETE"}]}
 
             zone_check = requests.get(self.uri, headers=self.headers)
@@ -445,7 +445,7 @@ class PDNSControl(object):
                         'payload': payload}
                     print(json.dumps(return_msg))
 
-            else:
+                else:
                     return_msg = {
                         'status_code': dummy_r.status_code,
                         'msg': f'{dns_record} deleted'
