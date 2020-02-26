@@ -1,0 +1,5 @@
+---
+- name: Example Playbook
+  hosts: all
+  roles:
+    - role: ansible-bootstrap-python

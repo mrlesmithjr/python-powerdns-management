@@ -1,0 +1,26 @@
+{{ ansible_managed|comment }}
+
+# Set our initial redirects here to ensure we catch everything
+{% for item in rsyslog_defaults %}
+{%   if item.name|length>0 %}
+{%     set selector = [item.selectors|default('*.*')]|flatten|join(';') %}
+{%     set proto = item.proto|default('') %}
+{%     if proto == 'nosync' %}
+{%       set prefix = '' %}
+{%     elif proto == 'pipe' %}
+{%       set prefix = '|' %}
+{%     elif proto == 'tcp' %}
+{%       set prefix = '@@' %}
+{%     elif proto == 'udp' %}
+{%       set prefix = '@' %}
+{%     else %}
+{%       set prefix = '' %}
+{%     endif %}
+{%     if item.port|default(0)|int>0 %}
+{%       set suffix = ':' + item.port %}
+{%     else %}
+{%       set suffix = '' %}
+{%     endif %}
+{{ selector }} {{ prefix }}{{ item.name }}{{ suffix }}
+{%   endif %}
+{% endfor %}

@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include ansible-apache2"
+      include_role:
+        name: "ansible-apache2"

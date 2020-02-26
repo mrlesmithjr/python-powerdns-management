@@ -1,0 +1,39 @@
+---
+galaxy_info:
+  author: Larry Smith Jr.
+  description: Ansible role to install/configure MySQL
+  license: MIT
+  min_ansible_version: 2.5
+
+  platforms:
+    - name: EL
+      versions:
+        - 6
+        - 7
+    - name: Fedora
+      versions:
+        - 23
+        - 24
+        - 25
+        - 26
+        - 27
+        - 28
+        - 29
+        - 30
+        - 31
+    - name: Ubuntu
+      versions:
+        - bionic
+        - precise
+        - trusty
+        - xenial
+    - name: Debian
+      versions:
+        - buster
+        - jessie
+        - stretch
+
+  galaxy_tags:
+    - database
+
+dependencies: []

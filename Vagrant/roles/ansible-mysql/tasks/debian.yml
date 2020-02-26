@@ -1,0 +1,18 @@
+---
+- include_tasks: mysql_root_pw.yml
+
+- name: debian | installing pre-reqs
+  apt:
+    name: "{{ mysql_pre_req_packages }}"
+    state: present
+  become: true
+  register: result
+  until: result is successful
+
+- name: debian | installing mysql
+  apt:
+    name: "{{ mysql_package }}"
+    state: present
+  become: true
+  register: result
+  until: result is successful

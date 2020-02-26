@@ -27,7 +27,8 @@ Nameservers:
 172.28.128.4
 172.28.128.5
 
-./pdns.py add_zones --apihost 172.28.128.3 --zone dev.vagrant.local --zoneType MASTER --nameservers 172.28.128.3,172.28.128.4,172.28.128.5
+./pdns.py add_zones --apihost 172.28.128.3 --zone dev.vagrant.local \
+  --zoneType MASTER --nameservers 172.28.128.3,172.28.128.4,172.28.128.5
 
 
 Create the Slave Zones with the info below:
@@ -40,7 +41,8 @@ Slaves:
 172.28.128.4
 172.28.128.5
 
-./pdns.py add_zones --apihost 172.28.128.4 --zone dev.vagrant.local --zoneType SLAVE --masters 172.28.128.3
+./pdns.py add_zones --apihost 172.28.128.4 --zone dev.vagrant.local \
+  --zoneType SLAVE --masters 172.28.128.3
 
 
 Create Master Zones using a CSV file:
@@ -72,8 +74,10 @@ name: development.dev.vagrant.local
 recordType: CNAME
 content: test01.dev.vagrant.local
 
-./pdns.py add_records --zone dev.vagrant.local --name test01 --content 172.28.128.161 --recordType A
-./pdns.py add_records --zone dev.vagrant.local --name development --content test01.dev.vagrant.local --recordType CNAME
+./pdns.py add_records --zone dev.vagrant.local --name test01 \
+  --content 172.28.128.161 --recordType A
+./pdns.py add_records --zone dev.vagrant.local --name development \
+  --content test01.dev.vagrant.local --recordType CNAME
 
 
 Create records using a csv file:
@@ -109,7 +113,8 @@ Zone: vagrant.local
 name: smtp.vagrant.local
 recordType: A
 
-./pdns.py delete_records --apihost 172.28.128.3 --name smtp --zone vagrant.local --recordType A
+./pdns.py delete_records --apihost 172.28.128.3 --name smtp \
+  --zone vagrant.local --recordType A
 
 
 Delete records reading from a csv file:
@@ -149,10 +154,12 @@ For PDNS v3.x use --apiversion old
 
 """
 
+
 class PDNSControl(object):
     """
     Main execution
     """
+
     def __init__(self):
         self.read_cli_args()
         self.setup_api_call()
@@ -165,41 +172,65 @@ class PDNSControl(object):
         Create new DNS records of different types
         """
         if self.args.readcsv is None:
+
+            # Define FQDN
+            dns_record = f'{self.args.name}.{self.args.zone}'
+
+            # Ensure record is canonical
+            if not dns_record.endswith('.'):
+                dns_record = f'{dns_record}.'
+
             payload = {
-                "rrsets": [
-                    {
-                        "name": self.args.name + '.' + self.args.zone,
-                        "type": self.args.recordType,
-                        "changetype": "REPLACE",
-                        "records": [
-                            {
-                                "content": self.args.content,
-                                "disabled": self.args.disabled,
-                                "name": self.args.name + '.' + self.args.zone,
-                                "ttl": self.args.ttl,
-                                "set-ptr": self.args.setPTR,
-                                "type": self.args.recordType,
-                                "priority": self.args.priority
-                            }
-                        ]
-                    }
-                ]
-            }
+                "rrsets": [{"name": dns_record, "type": self.args.recordType,
+                            "ttl": int(self.args.ttl), "changetype": "REPLACE",
+                            "records": [{"content": self.args.content,
+                                         "disabled": self.args.disabled,
+                                         "name": dns_record,
+                                         "ttl": int(self.args.ttl),
+                                         "set-ptr": self.args.setPTR,
+                                         "type": self.args.recordType,
+                                         "priority": self.args.priority}]}]}
+
+            # Check if zone exists
             zone_check = requests.get(self.uri, headers=self.headers)
+
             if zone_check.status_code == 200:
-                dummy_r = requests.patch(self.uri, data=json.dumps(payload), headers=self.headers)
-                print ("DNS Record '%s' Successfully Added/Updated"
-                       % (self.args.name + '.' + self.args.zone))
+                dummy_r = requests.patch(
+                    self.uri, data=json.dumps(payload), headers=self.headers)
+
+                if dummy_r.status_code not in [200, 204]:
+                    return_msg = {
+                        'status_code': dummy_r.status_code,
+                        'error': dummy_r.json().get('error'),
+                        'payload': payload}
+                    print(json.dumps(return_msg))
+
+                else:
+                    return_msg = {
+                        'status_code': dummy_r.status_code,
+                        'msg': f'{dns_record} added/updated'
+                    }
+                    print(json.dumps(return_msg))
+
             else:
-                print "DNS Zone '%s' Does Not Exist..." % self.args.zone
+                return_msg = {
+                    'status_code': zone_check.status_code,
+                    'error': zone_check.json().get('error'),
+                    'payload': payload
+                }
+
+                print(json.dumps(return_msg))
+
         elif self.args.readcsv is not None:
             try:
                 f = open(self.args.readcsv)
                 csv_f = csv.reader(f)
-                next(csv_f, None) #skip headers
+                next(csv_f, None)  # skip headers
+
                 for row in csv_f:
                     uri = ("http://%s:%s%s/servers/localhost/zones/%s"
-                           %(self.args.apihost, self.args.apiport, self.args.apiversion, row[1]))
+                           % (self.args.apihost, self.args.apiport,
+                              self.args.apiversion, row[1]))
                     if row[4].lower() == "false":
                         disabled = False
                     elif row[4].lower() == "true":
@@ -208,34 +239,56 @@ class PDNSControl(object):
                         set_ptr = False
                     if row[6].lower() == "true":
                         set_ptr = True
-                    payload = {
-                        "rrsets": [
-                            {
-                                "name": row[0] + '.' + row[1],
-                                "type": row[2],
-                                "changetype": "REPLACE",
-                                "records": [
-                                    {
-                                        "content": row[3],
-                                        "disabled": disabled,
-                                        "name": row[0] + '.' + row[1],
-                                        "ttl": row[5],
-                                        "set-ptr": set_ptr,
-                                        "type": row[2],
-                                        "priority": row[7]
-                                    }
-                                ]
-                            }
-                        ]
-                    }
+
+                    # Define FQDN
+                    dns_record = f'{row[0]}.{row[1]}'
+
+                    # Ensure record is canonical
+                    if not dns_record.endswith('.'):
+                        dns_record = f'{dns_record}.'
+
+                    payload = {"rrsets": [{"name": dns_record, "type": row[2],
+                                           "ttl": int(row[5]),
+                                           "changetype": "REPLACE",
+                                           "records": [{"content": row[3],
+                                                        "disabled": disabled,
+                                                        "name": dns_record,
+                                                        "ttl": int(row[5]),
+                                                        "set-ptr": set_ptr,
+                                                        "type": row[2],
+                                                        "priority": row[7]}]}]}
+
+                    # Check if zone exists
                     zone_check = requests.get(uri, headers=self.headers)
+
                     if zone_check.status_code == 200:
-                        dummy_r = (requests.patch(uri, data=json.dumps(payload),
+                        dummy_r = (requests.patch(uri,
+                                                  data=json.dumps(payload),
                                                   headers=self.headers))
-                        print ("DNS Record '%s' Successfully Added/Updated"
-                               % (row[0] + '.' + row[1]))
+
+                        if dummy_r.status_code not in [200, 204]:
+                            return_msg = {
+                                'status_code': dummy_r.status_code,
+                                'error': dummy_r.json().get('error'),
+                                'payload': payload}
+                            print(json.dumps(return_msg))
+
+                        else:
+                            return_msg = {
+                                'status_code': dummy_r.status_code,
+                                'msg': f'{dns_record} added/updated'
+                            }
+                            print(json.dumps(return_msg))
+
                     else:
-                        print "DNS Zone '%s' Does Not Exist...Skipping" % row[1]
+                        return_msg = {
+                            'status_code': zone_check.status_code,
+                            'error': zone_check.json().get('error'),
+                            'payload': payload
+                        }
+
+                        print(json.dumps(return_msg))
+
             finally:
                 f.close()
 
@@ -277,26 +330,32 @@ class PDNSControl(object):
                     "nameservers": []
                 }
             zone_check_uri = ("http://%s:%s%s/servers/localhost/zones/%s"
-                              %(self.args.apihost, self.args.apiport, self.args.apiversion, self.args.zone))
+                              % (self.args.apihost, self.args.apiport,
+                                 self.args.apiversion, self.args.zone))
             zone_check = requests.get(zone_check_uri, headers=self.headers)
             if zone_check.status_code == 200:
-                print "DNS Zone '%s' Already Exists..." % self.args.zone
+                print("DNS Zone '%s' Already Exists..." % self.args.zone)
             else:
-                dummy_r = requests.post(self.uri, data=json.dumps(payload), headers=self.headers)
-                print "DNS Zone '%s' Successfully Added..." % self.args.zone
+                dummy_r = requests.post(self.uri, data=json.dumps(
+                    payload), headers=self.headers)
+                print("DNS Zone '%s' Successfully Added..." % self.args.zone)
         elif self.args.readcsv is not None:
             try:
                 f = open(self.args.readcsv)
                 csv_f = csv.reader(f)
-                next(csv_f, None) #skip headers
+                next(csv_f, None)  # skip headers
                 for row in csv_f:
                     masters = []
                     nameservers = []
-                    zone_check_uri = ("http://%s:%s%s/servers/localhost/zones/%s"
-                                      %(self.args.apihost, self.args.apiport, self.args.apiversion, row[0]))
-                    zone_check = requests.get(zone_check_uri, headers=self.headers)
+                    zone_check_uri = (
+                        "http://%s:%s%s/servers/localhost/zones/%s"
+                        % (self.args.apihost, self.args.apiport,
+                           self.args.apiversion, row[0]))
+                    zone_check = requests.get(
+                        zone_check_uri, headers=self.headers)
                     if zone_check.status_code == 200:
-                        print "DNS Zone '%s' Already Exists...Skipping" % row[0]
+                        print("DNS Zone '%s' Already Exists...Skipping" %
+                              row[0])
                     else:
                         if row[2]:
                             for master in row[2].split(','):
@@ -327,8 +386,9 @@ class PDNSControl(object):
                                 "nameservers": []
                             }
                         dummy_r = (requests.post(self.uri,
-                                                 data=json.dumps(payload), headers=self.headers))
-                        print "DNS Zone '%s' Successfully Added..." % row[0]
+                                                 data=json.dumps(payload),
+                                                 headers=self.headers))
+                        print("DNS Zone '%s' Successfully Added..." % row[0])
             finally:
                 f.close()
 
@@ -360,47 +420,98 @@ class PDNSControl(object):
         Delete DNS records of different types
         """
         if self.args.readcsv is None:
-            payload = {
-                "rrsets": [
-                    {
-                        "name": self.args.name + '.' + self.args.zone,
-                        "type": self.args.recordType,
-                        "changetype": "DELETE",
-                    }
-                ]
-            }
+
+            # Define FQDN
+            dns_record = f'{self.args.name}.{self.args.zone}'
+
+            # Ensure record is canonical
+            if not dns_record.endswith('.'):
+                dns_record = f'{dns_record}.'
+
+            payload = {"rrsets": [{"name": dns_record,
+                                   "type": self.args.recordType,
+                                   "changetype": "DELETE"}]}
+
             zone_check = requests.get(self.uri, headers=self.headers)
+
             if zone_check.status_code == 200:
-                dummy_r = requests.patch(self.uri, data=json.dumps(payload), headers=self.headers)
-                print ("DNS Record '%s' Successfully Deleted"
-                       % (self.args.name + '.' + self.args.zone))
+                dummy_r = requests.patch(
+                    self.uri, data=json.dumps(payload), headers=self.headers)
+
+                if dummy_r.status_code not in [200, 204]:
+                    return_msg = {
+                        'status_code': dummy_r.status_code,
+                        'error': dummy_r.json().get('error'),
+                        'payload': payload}
+                    print(json.dumps(return_msg))
+
+                else:
+                    return_msg = {
+                        'status_code': dummy_r.status_code,
+                        'msg': f'{dns_record} deleted'
+                    }
+                    print(json.dumps(return_msg))
+
             else:
-                print "DNS Zone '%s' Does Not Exist..." % self.args.zone
+                return_msg = {
+                    'status_code': zone_check.status_code,
+                    'error': zone_check.json().get('error'),
+                    'payload': payload
+                }
+
+                print(json.dumps(return_msg))
+
         elif self.args.readcsv is not None:
             try:
                 f = open(self.args.readcsv)
                 csv_f = csv.reader(f)
-                next(csv_f, None) #skip headers
+                next(csv_f, None)  # skip headers
                 for row in csv_f:
+
                     uri = ("http://%s:%s%s/servers/localhost/zones/%s"
-                           %(self.args.apihost, self.args.apiport, self.args.apiversion, row[1]))
-                    payload = {
-                        "rrsets": [
-                            {
-                                "name": row[0] + '.' + row[1],
-                                "type": row[2],
-                                "changetype": "DELETE",
-                            }
-                        ]
-                    }
+                           % (self.args.apihost, self.args.apiport,
+                              self.args.apiversion, row[1]))
+
+                    # Define FQDN
+                    dns_record = f'{row[0]}.{row[1]}'
+
+                    # Ensure record is canonical
+                    if not dns_record.endswith('.'):
+                        dns_record = f'{dns_record}.'
+
+                    payload = {"rrsets": [{"name": dns_record, "type": row[2],
+                                           "changetype": "DELETE"}]}
+
                     zone_check = requests.get(uri, headers=self.headers)
+
                     if zone_check.status_code == 200:
-                        dummy_r = (requests.patch(uri, data=json.dumps(payload),
+                        dummy_r = (requests.patch(uri,
+                                                  data=json.dumps(payload),
                                                   headers=self.headers))
-                        print ("DNS Record '%s' Successfully Deleted"
-                               % (row[0] + '.' + row[1]))
+
+                        if dummy_r.status_code not in [200, 204]:
+                            return_msg = {
+                                'status_code': dummy_r.status_code,
+                                'error': dummy_r.json().get('error'),
+                                'payload': payload}
+                            print(json.dumps(return_msg))
+
+                        else:
+                            return_msg = {
+                                'status_code': dummy_r.status_code,
+                                'msg': f'{dns_record} deleted'
+                            }
+                            print(json.dumps(return_msg))
+
                     else:
-                        print "DNS Zone '%s' Does Not Exist...Skipping" % row[1]
+                        return_msg = {
+                            'status_code': zone_check.status_code,
+                            'error': zone_check.json().get('error'),
+                            'payload': payload
+                        }
+
+                        print(json.dumps(return_msg))
+
             finally:
                 f.close()
 
@@ -413,10 +524,11 @@ class PDNSControl(object):
         }
         zone_check = requests.get(self.uri, headers=self.headers)
         if zone_check.status_code == 200:
-            dummy_r = requests.delete(self.uri, data=json.dumps(payload), headers=self.headers)
-            print "DNS Zone '%s' Successfully Deleted..." % self.args.zone
+            dummy_r = requests.delete(
+                self.uri, data=json.dumps(payload), headers=self.headers)
+            print("DNS Zone '%s' Successfully Deleted..." % self.args.zone)
         else:
-            print "DNS Zone '%s' Does Not Exist..." % self.args.zone
+            print("DNS Zone '%s' Does Not Exist..." % self.args.zone)
 
     def query_config(self):
         """
@@ -424,7 +536,7 @@ class PDNSControl(object):
         """
         r = requests.get(self.uri, headers=self.headers)
         python_data = json.loads(r.text)
-        print json.dumps(python_data, indent=4)
+        print(json.dumps(python_data, indent=4))
 
     def query_stats(self):
         """
@@ -432,7 +544,7 @@ class PDNSControl(object):
         """
         r = requests.get(self.uri, headers=self.headers)
         python_data = json.loads(r.text)
-        print json.dumps(python_data, indent=4)
+        print(json.dumps(python_data, indent=4))
 
     def query_zones(self):
         """
@@ -443,9 +555,9 @@ class PDNSControl(object):
         r = requests.get(self.uri, headers=self.headers)
         if r.status_code == 200:
             python_data = json.loads(r.text)
-            print json.dumps(python_data, indent=4)
+            print(json.dumps(python_data, indent=4))
         else:
-            print "DNS Zone '%s' Does Not Exist..." % self.args.zone
+            print("DNS Zone '%s' Does Not Exist..." % self.args.zone)
 
     def read_cli_args(self):
         """
@@ -455,11 +567,16 @@ class PDNSControl(object):
         """
         parser = argparse.ArgumentParser(description='PDNS Controls...')
         parser.add_argument('action', help='Define action to take',
-                            choices=['add_records', 'add_zones', 'delete_records',
-                                     'delete_zones', 'query_config', 'query_stats', 'query_zones'])
-        parser.add_argument('--apikey', help='PDNS API Key', default='changeme')
-        parser.add_argument('--apihost', help='PDNS API Host', default='127.0.0.1')
-        parser.add_argument('--apiversion', help='PDNS API version', choices=['old', '/api/v1'], default='/api/v1')
+                            choices=['add_records', 'add_zones',
+                                     'delete_records',
+                                     'delete_zones', 'query_config',
+                                     'query_stats', 'query_zones'])
+        parser.add_argument(
+            '--apikey', help='PDNS API Key', default='changeme')
+        parser.add_argument(
+            '--apihost', help='PDNS API Host', default='127.0.0.1')
+        parser.add_argument('--apiversion', help='PDNS API version',
+                            choices=['old', '/api/v1'], default='/api/v1')
         parser.add_argument('--apiport', help='PDNS API Port', default='8081')
         parser.add_argument('--content', help='DNS Record content')
         parser.add_argument('--disabled', help='Define if Record is disabled',
@@ -470,7 +587,8 @@ class PDNSControl(object):
         parser.add_argument('--priority', help='Define priority', default=0)
         parser.add_argument('--readcsv', help='Read input from CSV')
         parser.add_argument('--recordType', help='DNS record type',
-                            choices=['A', 'AAAA', 'CNAME', 'MX', 'NS', 'PTR', 'SOA', 'SRV', 'TXT'])
+                            choices=['A', 'AAAA', 'CNAME', 'MX', 'NS', 'PTR',
+                                     'SOA', 'SRV', 'TXT'])
         parser.add_argument('--setPTR', help='Define if PTR record is created',
                             choices=['True', 'False'], default=True)
         parser.add_argument('--ttl', help='Define TTL', default=3600)
@@ -480,11 +598,13 @@ class PDNSControl(object):
         self.args = parser.parse_args()
         if self.args.apiversion == "old":
             self.args.apiversion = ""
-        if self.args.action == "add_zones" and (self.args.zoneType == "MASTER" and
-                                                self.args.nameservers is None):
+        if self.args.action == "add_zones" and (
+                self.args.zoneType == "MASTER" and
+                self.args.nameservers is None):
             parser.error("--nameservers is required to create MASTER zone")
-        if self.args.action == "add_zones" and (self.args.zoneType == "SLAVE" and
-                                                self.args.masters is None):
+        if self.args.action == "add_zones" and (
+                self.args.zoneType == "SLAVE" and
+                self.args.masters is None):
             parser.error("--masters is required to create SLAVE zone")
 
     def setup_api_call(self):
@@ -494,22 +614,31 @@ class PDNSControl(object):
         Based on action setup the correct API call to make
         """
         self.headers = {'X-API-Key': self.args.apikey}
-        if (self.args.action == "add_zones" or (self.args.action == "query_zones" and
-                                                self.args.zone is None)):
+        if (self.args.action == "add_zones" or (
+                self.args.action == "query_zones" and
+                self.args.zone is None)):
             self.uri = ("http://%s:%s%s/servers/localhost/zones"
-                        %(self.args.apihost, self.args.apiport, self.args.apiversion))
-        elif ((self.args.action == "add_records" and self.args.readcsv is None)
-              or (self.args.action == "delete_records" and self.args.readcsv is None)
+                        % (self.args.apihost, self.args.apiport,
+                           self.args.apiversion))
+        elif ((self.args.action == "add_records" and
+               self.args.readcsv is None)
+              or (self.args.action == "delete_records" and
+                  self.args.readcsv is None)
               or self.args.action == "delete_zones" or
-              (self.args.action == "query_zones" and self.args.zone is not None)):
+              (self.args.action == "query_zones" and
+               self.args.zone is not None)):
             self.uri = ("http://%s:%s%s/servers/localhost/zones/%s"
-                        %(self.args.apihost, self.args.apiport, self.args.apiversion, self.args.zone))
+                        % (self.args.apihost, self.args.apiport,
+                           self.args.apiversion, self.args.zone))
         elif self.args.action == "query_config":
             self.uri = ("http://%s:%s%s/servers/localhost/config"
-                        %(self.args.apihost, self.args.apiport, self.args.apiversion))
+                        % (self.args.apihost, self.args.apiport,
+                           self.args.apiversion))
         elif self.args.action == "query_stats":
             self.uri = ("http://%s:%s%s/servers/localhost/statistics"
-                        %(self.args.apihost, self.args.apiport, self.args.apiversion))
+                        % (self.args.apihost, self.args.apiport,
+                           self.args.apiversion))
+
 
 if __name__ == '__main__':
     PDNSControl()

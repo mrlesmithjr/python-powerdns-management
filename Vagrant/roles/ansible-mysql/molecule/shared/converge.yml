@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include ansible-mysql"
+      include_role:
+        name: "ansible-mysql"

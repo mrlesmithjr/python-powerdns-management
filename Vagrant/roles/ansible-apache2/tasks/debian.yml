@@ -1,0 +1,23 @@
+---
+- name: debian | updating apt cache
+  apt:
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  register: result
+  until: result is successful
+
+- name: debian | installing apache2 package
+  apt:
+    name: apache2
+    state: present
+  become: true
+  register: result
+  until: result is successful
+
+- name: debian | enabling apache on boot and starting
+  service:
+    name: apache2
+    state: started
+    enabled: true
+  become: true

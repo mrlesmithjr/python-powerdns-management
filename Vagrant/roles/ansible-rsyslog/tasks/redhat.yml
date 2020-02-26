@@ -1,0 +1,41 @@
+---
+- name: redhat_rsyslog | ensuring rsyslog is installed
+  yum:
+    name: rsyslog
+    state: present
+  become: true
+  register: result
+  until: result is successful
+  when:
+    - ansible_distribution != "Fedora"
+
+- name: redhat_rsyslog | ensuring rsyslog is installed
+  dnf:
+    name: rsyslog
+    state: present
+  become: true
+  register: result
+  until: result is successful
+  when:
+    - ansible_distribution == "Fedora"
+
+- name: redhat_rsyslog | configuring rsyslog
+  template:
+    src: etc/redhat_rsyslog.conf.j2
+    dest: /etc/rsyslog.conf
+    mode: 0644
+    owner: root
+    group: root
+  become: true
+  notify:
+    - restart rsyslog
+  when:
+    - rsyslog_config is defined
+    - rsyslog_config|bool
+
+- name: redhat_rsyslog | enabling rsyslog service
+  service:
+    name: rsyslog
+    enabled: true
+    state: started
+  become: true

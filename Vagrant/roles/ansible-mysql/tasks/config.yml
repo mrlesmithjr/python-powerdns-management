@@ -1,0 +1,81 @@
+---
+- name: config | Configuring MySQL
+  template:
+    src: etc/mysql/my.cnf.j2
+    dest: /etc/mysql/my.cnf
+    owner: root
+    group: root
+    mode: 0644
+  register: mariadb_reconfigured_alpine
+  become: true
+  notify: restart mariadb
+  when: ansible_os_family == "Alpine"
+
+- name: config | configuring mysql
+  template:
+    src: etc/mysql/my.cnf.j2
+    dest: /etc/mysql/my.cnf
+    owner: root
+    group: root
+    mode: 0644
+  register: mysql_reconfigured_14_04
+  become: true
+  notify: restart mysql
+  when: >
+    (ansible_distribution == "Ubuntu" and
+    ansible_distribution_version is version('14.04', '<=')) or
+    ansible_distribution == "Debian"
+
+- name: config | configuring mysql
+  template:
+    src: etc/mysql/mysql.conf.d/mysqld.cnf.j2
+    dest: /etc/mysql/mysql.conf.d/mysqld.cnf
+    owner: root
+    group: root
+    mode: 0644
+  register: mysql_reconfigured_16_04
+  become: true
+  notify: restart mysql
+  when:
+    - ansible_distribution == "Ubuntu"
+    - ansible_distribution_version is version('16.04', '>=')
+
+- name: config | configuring mysql
+  template:
+    src: etc/mysql/mysql.conf.d/mysqld.cnf.j2
+    dest: /etc/mysql/conf.d/mysqld.cnf
+    owner: root
+    group: root
+    mode: 0644
+  register: mysql_reconfigured_debian
+  become: true
+  notify: restart mysql
+  when: ansible_distribution == "Debian"
+
+- name: config | configuring client configuration
+  template:
+    src: etc/mysql/conf.d/client.cnf.j2
+    dest: /etc/mysql/conf.d/client.cnf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart mysql
+  become: true
+  when:
+    - ansible_os_family == "Debian"
+    - ansible_distribution_version is version('14.04', '<=')
+
+- name: config | configuring mysql
+  template:
+    src: etc/my.cnf.j2
+    dest: /etc/my.cnf
+    owner: root
+    group: root
+    mode: 0644
+  register: mariadb_reconfigured_redhat
+  become: true
+  notify: restart mariadb
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_distribution != "Fedora"
+    - ansible_distribution_version is version('7', '>=')

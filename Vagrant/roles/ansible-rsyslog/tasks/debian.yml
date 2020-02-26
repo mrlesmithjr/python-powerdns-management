@@ -1,0 +1,36 @@
+---
+- name: debian | ensuring rsyslog is installed
+  apt:
+    name: rsyslog
+    state: present
+  become: true
+  register: result
+  until: result is successful
+
+- name: debian | configuring rsyslog.conf
+  template:
+    src: etc/rsyslog.conf.j2
+    dest: /etc/rsyslog.conf
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+  notify:
+    - restart rsyslog
+  when:
+    - rsyslog_config is defined
+    - rsyslog_config|bool
+
+- name: debian | configuring rsyslog
+  template:
+    src: etc/rsyslog.d/50-default.conf.j2
+    dest: /etc/rsyslog.d/50-default.conf
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+  notify:
+    - restart rsyslog
+  when:
+    - rsyslog_config is defined
+    - rsyslog_config|bool

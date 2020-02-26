@@ -1,0 +1,80 @@
+{{ ansible_managed|comment }}
+
+#################
+#### MODULES ####
+#################
+
+$ModLoad imuxsock # provides support for local system logging
+$ModLoad imklog   # provides kernel logging support
+#$ModLoad immark  # provides --MARK-- message capability
+
+# provides UDP syslog reception
+{% if (rsyslog_allow_udp is defined and not rsyslog_allow_udp) or rsyslog_allow_udp is not defined %}
+#$ModLoad imudp
+#$UDPServerRun 514
+{% elif rsyslog_allow_udp is defined and rsyslog_allow_udp %}
+$ModLoad imudp
+{% if rsyslog_udp_port is defined %}
+$UDPServerRun {{ rsyslog_udp_port }}
+{% else %}
+$UDPServerRun 514
+{% endif %}
+{% endif %}
+
+# provides TCP syslog reception
+{% if (rsyslog_allow_tcp is defined and not rsyslog_allow_tcp) or rsyslog_allow_tcp is not defined %}
+#$ModLoad imtcp
+#$InputTCPServerRun 514
+{% elif rsyslog_allow_tcp is defined and rsyslog_allow_tcp %}
+$ModLoad imtcp
+{% if rsyslog_tcp_port is defined %}
+$InputTCPServerRun {{ rsyslog_tcp_port }}
+{% else %}
+$InputTCPServerRun 514
+{% endif %}
+{% endif %}
+
+# Enable non-kernel facility klog messages
+$KLogPermitNonKernelFacility on
+
+###########################
+#### GLOBAL DIRECTIVES ####
+###########################
+
+{% if (rsyslog_highprecision is defined and not rsyslog_highprecision) %}
+#
+# Use traditional timestamp format.
+# To enable high precision timestamps, comment out the following line.
+#
+$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+{% elif rsyslog_highprecision is defined and rsyslog_highprecision %}
+#
+# Use high precision timestamp format.
+# To enable traditional low-precision timestamps, uncomment the following line.
+#
+#$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+{% endif %}
+
+# Filter duplicated messages
+$RepeatedMsgReduction on
+
+#
+# Set the default permissions for all log files.
+#
+$FileOwner syslog
+$FileGroup adm
+$FileCreateMode 0640
+$DirCreateMode 0755
+$Umask 0022
+$PrivDropToUser syslog
+$PrivDropToGroup syslog
+
+#
+# Where to place spool and state files
+#
+$WorkDirectory /var/spool/rsyslog
+
+#
+# Include all config files in /etc/rsyslog.d/
+#
+$IncludeConfig /etc/rsyslog.d/*.conf
