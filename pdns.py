@@ -172,39 +172,61 @@ class PDNSControl(object):
         Create new DNS records of different types
         """
         if self.args.readcsv is None:
+
+            # Define FQDN
+            dns_record = f'{self.args.name}.{self.args.zone}'
+
+            # Ensure record is canonical
+            if not dns_record.endswith('.'):
+                dns_record = f'{dns_record}.'
+
             payload = {
-                "rrsets": [
-                    {
-                        "name": self.args.name + '.' + self.args.zone,
-                        "type": self.args.recordType,
-                        "changetype": "REPLACE",
-                        "records": [
-                            {
-                                "content": self.args.content,
+                "rrsets": [{"name": dns_record, "type": self.args.recordType,
+                            "ttl": int(self.args.ttl), "changetype": "REPLACE",
+                            "records": [{"content": self.args.content,
                                 "disabled": self.args.disabled,
-                                "name": self.args.name + '.' + self.args.zone,
-                                "ttl": self.args.ttl,
+                                         "name": dns_record,
+                                         "ttl": int(self.args.ttl),
                                 "set-ptr": self.args.setPTR,
                                 "type": self.args.recordType,
-                                "priority": self.args.priority
-                            }
-                        ]
-                    }
-                ]
-            }
+                                         "priority": self.args.priority}]}]}
+
+            # Check if zone exists
             zone_check = requests.get(self.uri, headers=self.headers)
+
             if zone_check.status_code == 200:
                 dummy_r = requests.patch(
                     self.uri, data=json.dumps(payload), headers=self.headers)
-                print("DNS Record '%s' Successfully Added/Updated"
-                      % (self.args.name + '.' + self.args.zone))
+
+                if dummy_r.status_code not in [200, 204]:
+                    return_msg = {
+                        'status_code': dummy_r.status_code,
+                        'error': dummy_r.json().get('error'),
+                        'payload': payload}
+                    print(json.dumps(return_msg))
+
             else:
-                print("DNS Zone '%s' Does Not Exist..." % self.args.zone)
+                    return_msg = {
+                        'status_code': dummy_r.status_code,
+                        'msg': f'{dns_record} added/updated'
+                    }
+                    print(json.dumps(return_msg))
+
+            else:
+                return_msg = {
+                    'status_code': zone_check.status_code,
+                    'error': zone_check.json().get('error'),
+                    'payload': payload
+                }
+
+                print(json.dumps(return_msg))
+
         elif self.args.readcsv is not None:
             try:
                 f = open(self.args.readcsv)
                 csv_f = csv.reader(f)
                 next(csv_f, None)  # skip headers
+
                 for row in csv_f:
                     uri = ("http://%s:%s%s/servers/localhost/zones/%s"
                            % (self.args.apihost, self.args.apiport,
@@ -217,36 +239,56 @@ class PDNSControl(object):
                         set_ptr = False
                     if row[6].lower() == "true":
                         set_ptr = True
-                    payload = {
-                        "rrsets": [
-                            {
-                                "name": row[0] + '.' + row[1],
-                                "type": row[2],
+
+                    # Define FQDN
+                    dns_record = f'{row[0]}.{row[1]}'
+
+                    # Ensure record is canonical
+                    if not dns_record.endswith('.'):
+                        dns_record = f'{dns_record}.'
+
+                    payload = {"rrsets": [{"name": dns_record, "type": row[2],
+                                           "ttl": int(row[5]),
                                 "changetype": "REPLACE",
-                                "records": [
-                                    {
-                                        "content": row[3],
+                                           "records": [{"content": row[3],
                                         "disabled": disabled,
-                                        "name": row[0] + '.' + row[1],
-                                        "ttl": row[5],
+                                                        "name": dns_record,
+                                                        "ttl": int(row[5]),
                                         "set-ptr": set_ptr,
                                         "type": row[2],
-                                        "priority": row[7]
-                                    }
-                                ]
-                            }
-                        ]
-                    }
+                                                        "priority": row[7]}]}]}
+
+                    # Check if zone exists
                     zone_check = requests.get(uri, headers=self.headers)
+
                     if zone_check.status_code == 200:
                         dummy_r = (requests.patch(uri,
                                                   data=json.dumps(payload),
                                                   headers=self.headers))
-                        print("DNS Record '%s' Successfully Added/Updated"
-                              % (row[0] + '.' + row[1]))
+
+                        if dummy_r.status_code not in [200, 204]:
+                            return_msg = {
+                                'status_code': dummy_r.status_code,
+                                'error': dummy_r.json().get('error'),
+                                'payload': payload}
+                            print(json.dumps(return_msg))
+
+                        else:
+                            return_msg = {
+                                'status_code': dummy_r.status_code,
+                                'msg': f'{dns_record} added/updated'
+                            }
+                            print(json.dumps(return_msg))
+
                     else:
-                        print("DNS Zone '%s' Does Not Exist...Skipping" %
-                              row[1])
+                        return_msg = {
+                            'status_code': zone_check.status_code,
+                            'error': zone_check.json().get('error'),
+                            'payload': payload
+                        }
+
+                        print(json.dumps(return_msg))
+
             finally:
                 f.close()
 
