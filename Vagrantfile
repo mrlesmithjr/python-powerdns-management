@@ -33,10 +33,10 @@ additional_nics = "yes"  #Define if additional network adapters should be create
 additional_nics_dhcp = "no"  #Define if additional network adapters should be DHCP assigned
 additional_nics_num = 1  #Define the number of additional nics to add
 ansible_groups = {
-  "master-nodes" => ["node0"],
-  "slave-nodes" => ["node1", "node2"]
+  "master_nodes" => ["node0"],
+  "slave_nodes" => ["node1", "node2"]
 }
-box = "mrlesmithjr/trusty64"  #Define Vagrant box to load
+box = "mrlesmithjr/xenial64"  #Define Vagrant box to load
 custom_cpu_mem = "no"  #Define if custom cpu and memory requirements are needed (yes| no)...defined within nodes variable above
 desktop = "no"  #Define if running desktop OS (yes | no)
 enable_port_forwards = "yes"  #Define if port forwards should be enabled
