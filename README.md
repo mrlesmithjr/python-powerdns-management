@@ -2,6 +2,35 @@
 
 A Pythonic method to managing [PowerDNS](http://www.powerdns.com) via API calls.
 
+## Requirements
+
+This is being converted to Python3 and will change over time obiously.
+
+### Python Virtual Environment
+
+Create a Python virtual environment to keep things clean.
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### Usage
+
+Install Python requirements for using the script:
+
+```bash
+pip install -r requirements.txt
+```
+
+### Development
+
+Install development Python requirements:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
 ## Create a new Master Zone with info below
 
 - Zone: dev.vagrant.local
@@ -13,7 +42,27 @@ A Pythonic method to managing [PowerDNS](http://www.powerdns.com) via API calls.
   - 192.168.202.202
 
 ```bash
-./pdns.py add_zones --apihost 192.168.202.200 --zone dev.vagrant.local --zoneType MASTER --nameservers 192.168.202.200,192.168.202.201,192.168.202.202
+python pdns.py add_zones --apihost 192.168.202.200 --zone dev.vagrant.local --zoneType MASTER --nameservers 192.168.202.200,192.168.202.201,192.168.202.202
+```
+
+## Vagrant Testing
+
+We have included a Vagrant environment for testing and general usages. You can
+spin this up by:
+
+```bash
+cd Vagrant
+vagrant up
+```
+
+Once the provisioning occurs, you will have a usable Vagrant environment with
+three nodes running PowerDNS. There are three in case you'd like to play with
+master/slave scenarios.
+
+When you are done testing you can tear down the Vagrant environment by:
+
+```bash
+./cleanup.sh
 ```
 
 ## Create the Slave Zones with the info below
@@ -26,7 +75,7 @@ A Pythonic method to managing [PowerDNS](http://www.powerdns.com) via API calls.
   - 192.168.202.202
 
 ```bash
-./pdns.py add_zones --apihost 192.168.202.201 --zone dev.vagrant.local --zoneType SLAVE --masters 192.168.202.200
+python pdns.py add_zones --apihost 192.168.202.201 --zone dev.vagrant.local --zoneType SLAVE --masters 192.168.202.200
 ```
 
 ## Create Master Zones using a CSV file
@@ -47,7 +96,7 @@ The first row is the header...
 Now read the csv file using CLI argument:
 
 ```bash
-./pdns.py add_zones --apihost 192.168.202.200 --readcsv master_zones.csv
+python pdns.py add_zones --apihost 192.168.202.200 --readcsv master_zones.csv
 ```
 
 ## Create records with info below
@@ -61,11 +110,11 @@ Now read the csv file using CLI argument:
   - content: test01.dev.vagrant.local
 
 ```bash
-./pdns.py add_records --zone dev.vagrant.local --name test01 --content 192.168.202.161 --recordType A
+python pdns.py add_records --zone dev.vagrant.local --name test01 --content 192.168.202.161 --recordType A
 ```
 
 ```bash
-./pdns.py add_records --zone dev.vagrant.local --name development --content test01.dev.vagrant.local --recordType CNAME
+python pdns.py add_records --zone dev.vagrant.local --name development --content test01.dev.vagrant.local --recordType CNAME
 ```
 
 ## Create records using a csv file
@@ -93,7 +142,7 @@ The first row is the header...
 Now read the csv file using CLI argument:
 
 ```bash
-./pdns.py add_records --apihost 192.168.202.200 --readcsv add_records.csv
+python pdns.py add_records --apihost 192.168.202.200 --readcsv add_records.csv
 ```
 
 ## Delete records with info below
@@ -103,7 +152,7 @@ Now read the csv file using CLI argument:
   - recordType: A
 
 ```bash
-./pdns.py delete_records --apihost 192.168.202.200 --name smtp --zone vagrant.local --recordType A
+python pdns.py delete_records --apihost 192.168.202.200 --name smtp --zone vagrant.local --recordType A
 ```
 
 ## Delete records reading from a csv file
@@ -123,17 +172,29 @@ The first row is the header...
 Now read the csv file using CLI argument:
 
 ```bash
-./pdns.py delete_records --apihost 192.168.202.200 --readcsv delete_records.csv
+python pdns.py delete_records --apihost 192.168.202.200 --readcsv delete_records.csv
 ```
 
 ## Query PDNS config
 
 ```bash
-./pdns.py query_config --apihost 192.168.202.200
+python pdns.py query_config --apihost 192.168.202.200
 ```
 
 ## Query zones
 
 ```bash
-./pdns.py query_zones --apihost 192.168.202.200
+python pdns.py query_zones --apihost 192.168.202.200
 ```
+
+## License
+
+MIT
+
+## Author Information
+
+Larry Smith Jr.
+
+- [@mrlesmithjr](https://www.twitter.com/mrlesmithjr)
+- [EverythingShouldBeVirtual](http://everythingshouldbevirtual.com)
+- [mrlesmithjr@gmail.com](mailto:mrlesmithjr@gmail.com)
