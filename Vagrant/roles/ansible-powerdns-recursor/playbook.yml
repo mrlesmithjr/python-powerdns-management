@@ -1,7 +1,0 @@
----
-- hosts: pdns
-  vars:
-    pri_domain_name: 'test.vagrant.local'
-  roles:
-    - role: ansible-powerdns-recursor
-  tasks:

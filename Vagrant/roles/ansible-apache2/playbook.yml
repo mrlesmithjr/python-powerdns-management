@@ -1,5 +1,0 @@
----
-- name: Example Playbook
-  hosts: all
-  roles:
-    - role: ansible-apache2

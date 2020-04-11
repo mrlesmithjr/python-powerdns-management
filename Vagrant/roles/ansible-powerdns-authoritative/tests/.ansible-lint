@@ -1,5 +1,0 @@
-skip_list:
-  - "204"
-  - ANSIBLE0006
-  - ANSIBLE0013
-  - ANSIBLE0016
