@@ -1,2 +1,2 @@
-ansible==2.9.5
+pandas==1.0.3
 requests==2.23.0
