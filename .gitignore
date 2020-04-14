@@ -1,4 +1,3 @@
-*.retry
-.vagrant/
-host_vars/
 venv/
+.vscode/
+logs/
