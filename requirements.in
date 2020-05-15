@@ -1,0 +1,4 @@
+# Python requirements for executing
+pandas
+pip-tools
+requests
