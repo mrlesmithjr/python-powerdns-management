@@ -1,4 +1,4 @@
-ansible==8.5.0
+ansible==12.2.0
 astroid==2.3.3
 autopep8==1.5
 certifi==2019.11.28
